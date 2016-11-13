@@ -1,33 +1,62 @@
 import numpy as np
 
 
-class NetworkGraph:
-    matrix = None
-    V = None
-
-    def __init__(self, V, default_values = 0):
-        self.matrix = default_values*np.ones((V+2,V+2)) # Add 2 for s and t nodes
-        self.V = V+2
-        self.s, self.t = 0, V+1
+class BipartiteNetworkGraph:
+    def __init__(self, L, R, default_values=0):
+        self.s_to_L = default_values * np.ones((L,))  # Edges from s -> L
+        self.R_to_T = default_values * np.ones((R,))
+        self.L_to_R = default_values * np.ones((L, R))
+        self.currencies = {}
+        self.s, self.t = 0, L + R + 1
 
     # Sets the weight of an edge
     #   @edge is a tuple (u,v)
     #   @weight is the desired weight to set
     def add_edge(self, edge, weight):
-        assert type(edge) is tuple and len(edge) == 2, 'Invalid edge: {}. Edge must be a tuple of form (u,v)'.format(edge)
-        u,v = edge
-        assert u < self.V and v < self.V, 'Invalid edge: {} for graph with {} vertices'.format(edge, self.V)
-        self.matrix[u,v] = weight
+        u, v = edge
+        if u == self.s:
+            self.s_to_L[v] = weight
+        elif v == self.t:
+            self.R_to_T[u] = weight
+        else:
+            self.L_to_R[u, v] = weight
+
+    def set_currency(self, v, currency):
+        self.currencies[v] = currency
+
+    def get_currency(self,v):
+        if v in self.currencies:
+            return self.currencies
+        else:
+            return None
 
     # Returns all edges of the form (v, .)
     def get_out_edges(self, v):
-        assert v < self.V, 'Invalid vertex: {} for graph with {} vertices'.format(v, self.V)
-        return self.matrix[v,:]
+        if v == self.s:
+            return self.s_to_L
+        elif self.is_in_L(v):
+            return self.L_to_R[v,:]
+        elif self.is_in_R(v):
+            return self.R_to_T
+        else:
+            return []
+
+    def is_in_R(self, v):
+        return len(self.L) < v < len(self.L) + len(self.R) + 1
+
+    def is_in_L(self, v):
+        return 1 < v < len(self.L) + 1
 
     # Returns all edges of the form (.,v)
     def get_in_edges(self, v):
-        assert v < self.V, 'Invalid vertex: {} for graph with {} vertices'.format(v, self.V)
-        return self.matrix[:,v]
+        if v == self.t:
+            return self.R_to_T
+        elif self.is_in_R(v):
+            return self.L_to_R[:,v]
+        elif self.is_in_L(v):
+            return self.s_to_L
+        else:
+            return []
 
     def get_edges(self):
         return np.argwhere(self.matrix > 0)
