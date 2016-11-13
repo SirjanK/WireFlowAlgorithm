@@ -1,6 +1,6 @@
 import numpy as np
 from scipy import optimize
-from DataStructures import BipartiteNetworkGraph
+from BipartiteNetworkGraph import BipartiteNetworkGraph
 
 
 def solve_optimal(payments_list):
@@ -74,6 +74,7 @@ def calculate_net_payments(payment_list):
             net_payments[sender.get_currency()] += payment.get_amount()
     return sorted([(net_payments[currency], currency) for currency in net_payments])
 
+
 def formulate_simplex(capacity_graph, cost_graph):
     """
     Takes in a capacity graph and cost graph in order to output
@@ -82,12 +83,18 @@ def formulate_simplex(capacity_graph, cost_graph):
     :param cost_graph:     the graph holding edge weights as cut percentages.
     :return:               parameters for simplex to function.
     """
-    # TODO: Implement this method
-    min_weights = cost_graph.flatten_matrix()
-    constraint_matrix = np.zeros(4)
+    L, R = capacity_graph.get_L(), capacity_graph.get_R()
+    total_dim = L * R + R + L
+    min_weights = np.append(cost_graph.s_to_L, cost_graph.flatten_matrix())
+    min_weights = np.append(min_weights, cost_graph.R_to_T)
 
-    protruding_edges = capacity_graph.get_out_edges(0)
-    terminal_edges = capacity_graph.get_in_edges(capacity_graph.V - 1)
+    constraint_matrix = np.array([1] * L + [0] * (L * R + R))
+    constraint_matrix = np.vstack((constraint_matrix, np.ones(shape=(L, total_dim))))
+    constraint_matrix = np.vstack((constraint_matrix, np.ones(shape=(R, total_dim))))
+
+    protruding_edges = capacity_graph.get_out_edges(capacity_graph.s)
+    terminal_edges = capacity_graph.get_in_edges(capacity_graph.t)
+
     constraint_res = np.array([sum(protruding_edges)])
     constraint_res = np.append(constraint_res, protruding_edges)
     constraint_res = np.append(constraint_res, terminal_edges)

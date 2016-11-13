@@ -62,4 +62,10 @@ class BipartiteNetworkGraph:
         return np.argwhere(self.matrix > 0)
 
     def flatten_matrix(self):
-        return self.matrix.reshape((self.matrix.shape[0] * self.matrix.shape[1],))
+        return self.L_to_R.reshape((self.L_to_R.shape[0] * self.L_to_R.shape[1],))
+
+    def get_L(self):
+        return self.L_to_R.shape[0]
+
+    def get_R(self):
+        return self.L_to_R.shape[1]
