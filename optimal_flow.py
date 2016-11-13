@@ -24,9 +24,40 @@ def initialize(payments_list):
     :param payments_list: list of Payments given from the Backend
     :return:              two Graph objects
     """
-    # TODO: Implement this method
-    return NetworkGraph(1), NetworkGraph(1)
+    net_payments = calculate_net_payments(payments_list)
+    V = len(net_payments)
+    cost_graph, capacity_graph = NetworkGraph(V), NetworkGraph(V)
 
+    for index, (net_amount, currency) in enumerate(net_payments):
+        if(net_amount < 0):
+            capacity_graph.add_edge((capacity_graph.s, index+1), abs(net_amount))
+            cost_graph.add_edge((cost_graph.s, index + 1), 0)
+        elif(net_amount > 0):
+            capacity_graph.add_edge((index + 1, capacity_graph.t), abs(net_amount))
+            cost_graph.add_edge((index + 1, cost_graph.t), 0)
+    return cost_graph, capacity_graph
+
+
+def calculate_net_payments(payment_list):
+    """
+        Takes in a list of Payments and constructs a sorted list of
+        tuples of the form (net_amount, currency)
+        :param payments_list: list of Payments given from the Backend
+        :return:              list of tuples
+        """
+    net_payments = {}
+    for payment in payment_list:
+        sender, receiver = payment.get_sender(), payment.get_receiver()
+        if sender.get_currency() not in net_payments:
+            net_payments[sender.get_currency()] = - payment.get_amount()
+        else:
+            net_payments[sender.get_currency()] -= payment.get_amount()
+
+        if receiver.get_currency() not in net_payments:
+            net_payments[receiver.get_currency()] = payment.get_amount()
+        else:
+            net_payments[sender.get_currency()] += payment.get_amount()
+    return sorted([(net_payments[currency], currency) for currency in net_payments])
 
 def formulate_simplex(capacity_graph, cost_graph):
     """
@@ -76,6 +107,6 @@ def get_transcations_for_currency(currency, total_fees, total_amount_sent):
         payment_amount = payment.get_amount()
         sender, receiver = payment.get_sender(), payment.get_receiver()
         transactions += [Payment(sender, currency_bank, payment_amount)]
-        transactions += [Payment(currency_bank, receiver, payment_amount)]
+        transactions += [Payment(currency_bank, receiver - (total_fees)*(payment_amount/total_amount_sent), payment_amount)]
     return transactions
 
