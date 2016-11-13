@@ -1,6 +1,6 @@
 import numpy as np
 from scipy import optimize
-from DataStructures import NetworkGraph
+from DataStructures import BipartiteNetworkGraph
 
 
 def solve_optimal(payments_list):
@@ -25,16 +25,31 @@ def initialize(payments_list):
     :return:              two Graph objects
     """
     net_payments = calculate_net_payments(payments_list)
+    losers = [(net_amount, currency) for net_amount, currency in net_payments if net_amount < 0]
+    gainers = [(net_amount, currency) for net_amount, currency in net_payments if net_amount > 0]   # TODO: Handle == 0 case
+    L, R = len(losers), len(gainers)
     V = len(net_payments)
-    cost_graph, capacity_graph = NetworkGraph(V), NetworkGraph(V)
+    cost_graph, capacity_graph = BipartiteNetworkGraph(V), BipartiteNetworkGraph(V)
 
     for index, (net_amount, currency) in enumerate(net_payments):
+        v = index + 1
         if(net_amount < 0):
-            capacity_graph.add_edge((capacity_graph.s, index+1), abs(net_amount))
-            cost_graph.add_edge((cost_graph.s, index + 1), 0)
+            capacity_graph.add_edge((capacity_graph.s, v), abs(net_amount))
+            cost_graph.add_edge((cost_graph.s, v), 0)
         elif(net_amount > 0):
-            capacity_graph.add_edge((index + 1, capacity_graph.t), abs(net_amount))
-            cost_graph.add_edge((index + 1, cost_graph.t), 0)
+            capacity_graph.add_edge((v, capacity_graph.t), abs(net_amount))
+            cost_graph.add_edge((v, cost_graph.t), 0)
+
+        cost_graph.set_currency(v, currency)
+        capacity_graph.set_currency(v, currency)
+
+    for u in range(L):
+        for v in range(R):
+            send_currency, receive_currency = cost_graph.get_currency(u), cost_graph.get_currency(v)
+            exchange_rate = send_currency.get_exchange_rate(receive_currency)
+            capacity_graph.add_edge((u,v), float('inf'))
+            cost_graph.add_edge((u,v), exchange_rate)
+
     return cost_graph, capacity_graph
 
 
