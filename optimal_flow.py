@@ -37,9 +37,14 @@ def formulate_simplex(capacity_graph, cost_graph):
     :return:               parameters for simplex to function.
     """
     # TODO: Implement this method
-    min_weights = np.zeros(4)
+    min_weights = cost_graph.flatten_matrix()
     constraint_matrix = np.zeros(4)
-    constraint_res = np.zeros(4)
+
+    protruding_edges = capacity_graph.get_out_edges(0)
+    terminal_edges = capacity_graph.get_in_edges(capacity_graph.V - 1)
+    constraint_res = np.array([sum(protruding_edges)])
+    constraint_res = np.append(constraint_res, protruding_edges)
+    constraint_res = np.append(constraint_res, terminal_edges)
     return min_weights, constraint_matrix, constraint_res
 
 
@@ -57,9 +62,12 @@ def run_simplex(c, A_equality, b_equality):
 # TODO: Actually implement
 def get_currency_account(currency):
     return 'fake bank'
+
+
 class Payment():
     def __init__(self, a, b, c):
         return
+
 
 def get_transcations_for_currency(currency, total_fees, total_amount_sent):
     transactions = []

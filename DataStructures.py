@@ -1,6 +1,7 @@
 import numpy as np
 
-class NetworkGraph():
+
+class NetworkGraph:
     matrix = None
     V = None
 
@@ -30,3 +31,5 @@ class NetworkGraph():
     def get_edges(self):
         return np.argwhere(self.matrix > 0)
 
+    def flatten_matrix(self):
+        return self.matrix.reshape((self.matrix.shape[0] * self.matrix.shape[1],))
