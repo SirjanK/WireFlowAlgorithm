@@ -44,5 +44,12 @@ def formulate_simplex(capacity_graph, cost_graph):
 
 
 def run_simplex(c, A_equality, b_equality):
-    return optimize.linprog(c, A_eq=A_equality, b_eq=b_equality)
+    """
+    Run simplex with the given parameters.
+    :param c:          the weights for the minimization function.
+    :param A_equality: the weights for the constraint equations.
+    :param b_equality: the values for the constraint equations.
+    :return:           the result of calling simplex.
+    """
+    return optimize.linprog(c, A_eq=A_equality, b_eq=b_equality, method='simplex')
 
