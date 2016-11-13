@@ -10,5 +10,20 @@ def main():
     result = optimize.linprog(c, Aub, bub, A_eq=Aeq, b_eq=beq)
     print(result)
 
+
+def get_currency_bank(currency):
+    return 'fake bank'
+
+def get_transcations_for_currency(currency, total_fees, total_amount_sent):
+    transactions = []
+    currency_bank = get_currency_bank(currency)
+    for payment in currency_bank.get_out_payments():
+        payment_amount = payment.get_amount()
+        sender, receiver = payment.get_sender(), payment.get_receiver()
+        transactions += [Payment(sender, currency_bank, payment_amount)]
+        transactions += [Payment(currency_bank, receiver, payment_amount)]
+    return transactions
+
+
 if __name__ == '__main__':
     main()
