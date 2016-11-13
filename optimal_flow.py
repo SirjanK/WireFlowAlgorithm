@@ -53,3 +53,21 @@ def run_simplex(c, A_equality, b_equality):
     """
     return optimize.linprog(c, A_eq=A_equality, b_eq=b_equality, method='simplex')
 
+
+# TODO: Actually implement
+def get_currency_account(currency):
+    return 'fake bank'
+class Payment():
+    def __init__(self, a, b, c):
+        return
+
+def get_transcations_for_currency(currency, total_fees, total_amount_sent):
+    transactions = []
+    currency_bank = get_currency_account(currency)
+    for payment in currency_bank.get_out_payments():
+        payment_amount = payment.get_amount()
+        sender, receiver = payment.get_sender(), payment.get_receiver()
+        transactions += [Payment(sender, currency_bank, payment_amount)]
+        transactions += [Payment(currency_bank, receiver, payment_amount)]
+    return transactions
+
